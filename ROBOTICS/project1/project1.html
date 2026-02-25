@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mars Rover Simulation — Akila Prasanga</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Barlow:wght@300;400;600&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #050608;
+    --dark: #0a0c10;
+    --panel: #0e1117;
+    --border: #1a2030;
+    --steel: #1e2d45;
+    --blue: #2563eb;
+    --blue-bright: #3b82f6;
+    --cyan: #06b6d4;
+    --green: #10b981;
+    --green-bright: #34d399;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --dim: #334155;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(16,185,129,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(16,185,129,0.025) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none; z-index: 0;
+  }
+
+  .cursor { position: fixed; width: 8px; height: 8px; background: var(--green); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); }
+  .cursor-ring { position: fixed; width: 32px; height: 32px; border: 1px solid rgba(16,185,129,0.4); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%,-50%); transition: width 0.2s, height 0.2s; }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    display: flex; justify-content: center; align-items: center;
+    padding: 20px 60px; height: 61px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(5,6,8,0.9);
+    backdrop-filter: blur(12px);
+  }
+  .nav-links { display: flex; gap: 56px; list-style: none; }
+  .nav-links a { font-family: 'DM Mono'; font-size: 14px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--green); }
+
+  .nav-toggle {
+    display: none; flex-direction: column; gap: 5px;
+    background: none; border: none; cursor: pointer; padding: 4px;
+    position: absolute; right: 24px;
+  }
+  .nav-toggle span { display: block; width: 22px; height: 1.5px; background: var(--muted); transition: background 0.2s; }
+  .nav-toggle:hover span { background: var(--green); }
+
+  .page-wrap { min-height: 100vh; padding-top: 61px; position: relative; z-index: 1; }
+
+  .main-content {
+    max-width: 1100px; margin: 0 auto;
+    padding: 0 60px 120px;
+    position: relative; z-index: 2;
+  }
+
+  /* BACK */
+  .back-link {
+    display: inline-flex; align-items: center; gap: 10px;
+    color: var(--green); text-decoration: none;
+    font-family: 'DM Mono'; font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    margin: 40px 0 20px;
+    transition: color 0.2s, transform 0.2s;
+    background: transparent; border: none; cursor: none;
+  }
+  .back-link:hover { color: var(--green-bright); transform: translateX(-4px); }
+  .back-link .arrow { font-size: 18px; }
+
+  /* HERO */
+  .project-hero {
+    padding: 20px 0 50px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 60px;
+    opacity: 0; animation: fadeUp 0.7s 0.1s forwards;
+  }
+  .project-category {
+    font-family: 'DM Mono'; font-size: 11px; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--green); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .project-category::before { content: ''; width: 40px; height: 1px; background: var(--green); }
+  .project-title {
+    font-family: 'Bebas Neue'; font-size: clamp(40px, 6vw, 80px);
+    letter-spacing: 3px; line-height: 0.95; color: var(--text);
+    margin-bottom: 20px;
+  }
+  .project-meta {
+    display: flex; gap: 40px; flex-wrap: wrap; margin-top: 24px;
+  }
+  .meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .meta-label { font-family: 'DM Mono'; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--dim); }
+  .meta-value { font-family: 'DM Mono'; font-size: 12px; color: var(--green-bright); }
+
+  /* TAGS */
+  .tag-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .tag {
+    font-family: 'DM Mono'; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--green-bright); border: 1px solid rgba(52,211,153,0.3); padding: 5px 12px;
+  }
+
+  /* SECTION */
+  .section { margin-bottom: 64px; opacity: 0; animation: fadeUp 0.7s forwards; }
+  .section:nth-child(1) { animation-delay: 0.2s; }
+  .section:nth-child(2) { animation-delay: 0.3s; }
+  .section:nth-child(3) { animation-delay: 0.4s; }
+  .section:nth-child(4) { animation-delay: 0.5s; }
+  .section:nth-child(5) { animation-delay: 0.6s; }
+
+  .section-label {
+    font-family: 'DM Mono'; font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--green); margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .section-title {
+    font-family: 'Bebas Neue'; font-size: 28px; letter-spacing: 2px;
+    color: var(--text); margin-bottom: 16px;
+  }
+
+  p { font-size: 14px; color: var(--muted); line-height: 1.8; font-weight: 300; margin-bottom: 16px; }
+
+  /* VIDEO BLOCK */
+  .video-block {
+    background: var(--panel); border: 1px solid var(--border);
+    overflow: hidden; margin-bottom: 20px;
+    position: relative;
+  }
+
+  .video-block video {
+    width: 100%; display: block;
+    background: var(--dark);
+  }
+
+  .video-caption {
+    padding: 16px 20px;
+    font-family: 'DM Mono'; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--dim); border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .video-caption .vc-num { color: var(--green); }
+
+  /* FEATURES GRID */
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px; }
+  .feature-card {
+    background: var(--panel); border: 1px solid var(--border); padding: 24px;
+    transition: border-color 0.2s;
+  }
+  .feature-card:hover { border-color: var(--green); }
+  .feature-icon { font-size: 22px; margin-bottom: 12px; opacity: 0.8; }
+  .feature-name { font-family: 'Rajdhani'; font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text); margin-bottom: 8px; }
+  .feature-desc { font-size: 12px; color: var(--muted); line-height: 1.6; font-weight: 300; }
+
+  /* SPEC TABLE */
+  .spec-table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+  .spec-table tr { border-bottom: 1px solid var(--border); }
+  .spec-table td { padding: 14px 0; font-size: 13px; }
+  .spec-table td:first-child { font-family: 'DM Mono'; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--dim); width: 40%; }
+  .spec-table td:last-child { color: var(--text); }
+
+  /* TWO-VIDEO GRID */
+  .video-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--black); }
+  ::-webkit-scrollbar-thumb { background: var(--green); }
+
+  @media (max-width: 900px) {
+    nav { justify-content: center; padding: 0 24px; }
+    .nav-toggle { display: flex; }
+    .nav-links { display: none; flex-direction: column; gap: 0; position: absolute; top: 61px; left: 0; right: 0; background: rgba(5,6,8,0.97); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 16px 0; z-index: 300; }
+    .nav-links.open { display: flex; }
+    .nav-links li { width: 100%; }
+    .nav-links a { display: block; padding: 14px 24px; }
+    .main-content { padding: 0 20px 80px; }
+    .features-grid { grid-template-columns: 1fr 1fr; }
+    .video-grid { grid-template-columns: 1fr; }
+    .project-meta { gap: 24px; }
+  }
+
+  @media (max-width: 540px) {
+    .features-grid { grid-template-columns: 1fr; }
+    .project-title { font-size: clamp(36px, 10vw, 56px); }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav>
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="../../index.html">About</a></li>
+    <li><a href="../../projects.html" class="active">Projects</a></li>
+    <li><a href="#">Research</a></li>
+    <li><a href="#">Case Studies</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrap">
+  <div class="main-content">
+
+    <a class="back-link" href="../../robotics.html" title="Back to Robotics">
+      <span class="arrow">←</span> Robotics
+    </a>
+
+    <!-- HERO -->
+    <div class="project-hero">
+      <div class="project-category">ROB — 001</div>
+      <h1 class="project-title">Simulation of Mars Rover in Webots Software</h1>
+      <div class="tag-row">
+        <span class="tag">Webots</span>
+        <span class="tag">Mars Rover</span>
+        <span class="tag">Simulation</span>
+        <span class="tag">Autonomous Navigation</span>
+        <span class="tag">Python</span>
+        <span class="tag">Robot Physics</span>
+      </div>
+      <div class="project-meta">
+        <div class="meta-item">
+          <span class="meta-label">Software</span>
+          <span class="meta-value">Webots R2023b</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Language</span>
+          <span class="meta-value">Python</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Category</span>
+          <span class="meta-value">Robotics Simulation</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Domain</span>
+          <span class="meta-value">Space Robotics</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- OVERVIEW -->
+    <div class="section">
+      <div class="section-label">Overview</div>
+      <div class="section-title">Project Overview</div>
+      <p>This project presents a complete simulation of a Mars Rover inside Webots, the open-source robot simulation platform. The rover is modelled to replicate the mechanical and physical characteristics of a real planetary exploration vehicle, operating within a simulated Martian environment with accurate terrain, gravity, and surface friction parameters.</p>
+      <p>The simulation showcases autonomous task execution, where the rover performs navigation and obstacle avoidance routines across uneven terrain. Sensor data from the virtual environment is processed in real time to drive the rover's decision-making, demonstrating how robotic systems respond to challenging planetary surface conditions without human intervention.</p>
+    </div>
+
+    <!-- SIMULATION VIDEOS -->
+    <div class="section">
+      <div class="section-label">Simulation Recordings</div>
+      <div class="section-title">Task Demonstrations</div>
+      <p>The following recordings capture the Mars Rover performing assigned simulation tasks inside the Webots environment. Each video demonstrates a different phase of the rover's operation.</p>
+
+      <!-- Primary video -->
+      <div class="video-block">
+        <video controls preload="metadata">
+          <source src="SampleTask.mp4" type="video/mp4">
+          Your browser does not support HTML5 video.
+        </video>
+        <div class="video-caption">
+          <span>Sample Task — Primary Navigation Run</span>
+          <span class="vc-num">VID 01</span>
+        </div>
+      </div>
+
+      <!-- Secondary video -->
+      <div class="video-block">
+        <video controls preload="metadata">
+          <source src="SampleTask_1.mp4" type="video/mp4">
+          Your browser does not support HTML5 video.
+        </video>
+        <div class="video-caption">
+          <span>Sample Task 1 — Extended Terrain Run</span>
+          <span class="vc-num">VID 02</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- KEY FEATURES -->
+    <div class="section">
+      <div class="section-label">Key Features</div>
+      <div class="section-title">Simulation Capabilities</div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🛰️</div>
+          <div class="feature-name">Martian Environment</div>
+          <div class="feature-desc">Simulated Martian terrain with accurate gravitational parameters, surface friction, and irregular ground topology.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🤖</div>
+          <div class="feature-name">Autonomous Navigation</div>
+          <div class="feature-desc">The rover follows pre-programmed behaviour trees to navigate, avoid obstacles, and complete task objectives without manual input.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📡</div>
+          <div class="feature-name">Sensor Integration</div>
+          <div class="feature-desc">Virtual sensors including proximity detectors and wheel encoders provide real-time feedback to the rover's control algorithm.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚙️</div>
+          <div class="feature-name">Physics-Based Motion</div>
+          <div class="feature-desc">Webots' ODE physics engine handles realistic wheel-terrain interaction, torque distribution, and body dynamics during traversal.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🐍</div>
+          <div class="feature-name">Python Controller</div>
+          <div class="feature-desc">The rover's behaviour is scripted in Python using Webots' controller API, enabling fast iteration and readable logic flow.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎬</div>
+          <div class="feature-name">Task Recording</div>
+          <div class="feature-desc">Simulation runs are recorded for review and documentation, enabling visual verification of task performance and rover behaviour.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TECHNICAL SPECIFICATIONS -->
+    <div class="section">
+      <div class="section-label">Specifications</div>
+      <div class="section-title">Technical Details</div>
+      <table class="spec-table">
+        <tr>
+          <td>Simulation Platform</td>
+          <td>Webots (Open-Source Robot Simulator)</td>
+        </tr>
+        <tr>
+          <td>Physics Engine</td>
+          <td>ODE (Open Dynamics Engine)</td>
+        </tr>
+        <tr>
+          <td>Controller Language</td>
+          <td>Python 3</td>
+        </tr>
+        <tr>
+          <td>Rover Locomotion</td>
+          <td>6-Wheel Differential Drive</td>
+        </tr>
+        <tr>
+          <td>Environment</td>
+          <td>Martian Surface (Low Gravity, Rocky Terrain)</td>
+        </tr>
+        <tr>
+          <td>Navigation Mode</td>
+          <td>Autonomous / Pre-programmed Task Execution</td>
+        </tr>
+        <tr>
+          <td>Sensor Suite</td>
+          <td>Distance Sensors, Wheel Encoders, GPS Node</td>
+        </tr>
+        <tr>
+          <td>Task Files</td>
+          <td>SampleTask.mp4, SampleTask_1.mp4</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- METHODOLOGY -->
+    <div class="section">
+      <div class="section-label">Methodology</div>
+      <div class="section-title">Development Approach</div>
+      <p>The project began with constructing the rover's PROTO model inside Webots, defining its physical geometry, mass distribution, and joint parameters to match a realistic six-wheeled planetary rover configuration. The Martian world file was configured with reduced gravity and a terrain mesh to simulate surface conditions.</p>
+      <p>The Python controller handles all decision logic: reading sensor inputs at each simulation step, evaluating navigation state, and issuing motor commands accordingly. Task scripts define waypoint sequences and obstacle handling routines, which were tested iteratively across multiple simulation runs until smooth, stable traversal was achieved.</p>
+      <p>Recorded output videos document the rover completing each assigned task, providing clear visual evidence of the simulation's correctness and the controller's robustness under varying terrain conditions.</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+document.getElementById('navToggle').addEventListener('click',()=>{
+  document.getElementById('navLinks').classList.toggle('open');
+});
+
+const cursor=document.getElementById('cursor');
+const ring=document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursor.style.left=mx+'px';cursor.style.top=my+'px';});
+(function animateRing(){rx+=(mx-rx)*0.12;ry+=(my-ry)*0.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animateRing);})();
+
+if(window.innerWidth<=900){cursor.style.display='none';ring.style.display='none';}
+
+document.querySelectorAll('a,button,.feature-card,video').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{if(window.innerWidth>900){ring.style.width='48px';ring.style.height='48px';}});
+  el.addEventListener('mouseleave',()=>{if(window.innerWidth>900){ring.style.width='32px';ring.style.height='32px';}});
+});
+
+document.querySelectorAll('.nav-links a').forEach(link=>{
+  link.addEventListener('click',()=>{document.getElementById('navLinks').classList.remove('open');});
+});
+
+window.addEventListener('resize',()=>{
+  if(window.innerWidth<=900){cursor.style.display='none';ring.style.display='none';}
+  else{cursor.style.display='block';ring.style.display='block';}
+});
+</script>
+</body>
+</html>
