@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projects — Akila Prasanga</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Barlow:wght@300;400;600&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #050608;
+    --dark: #0a0c10;
+    --panel: #0e1117;
+    --border: #1a2030;
+    --steel: #1e2d45;
+    --blue: #2563eb;
+    --blue-bright: #3b82f6;
+    --cyan: #06b6d4;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --dim: #334155;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; height: 100%; }
+
+  body {
+    background: var(--black);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(37,99,235,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(37,99,235,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .cursor { position: fixed; width: 8px; height: 8px; background: var(--cyan); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); }
+  .cursor-ring { position: fixed; width: 32px; height: 32px; border: 1px solid rgba(6,182,212,0.4); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%,-50%); transition: width 0.2s, height 0.2s; }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    display: flex; justify-content: center; align-items: center;
+    padding: 20px 60px;
+    height: 61px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(5,6,8,0.9);
+    backdrop-filter: blur(12px);
+  }
+  .nav-links { display: flex; gap: 56px; list-style: none; }
+  .nav-links a {
+    font-family: 'DM Mono';
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover, .nav-links a.active { color: var(--cyan); }
+
+  /* PAGE LAYOUT */
+  .page-wrap {
+    display: flex;
+    min-height: 100vh;
+    padding-top: 61px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* LEFT PANEL — sticky, doesn't scroll with right content */
+  .left-panel {
+    position: sticky;
+    top: 61px;
+    width: 380px;
+    flex-shrink: 0;
+    height: calc(100vh - 61px);
+    overflow-y: auto;
+    border-right: 1px solid var(--border);
+    padding: 48px 40px 80px;
+    display: flex;
+    flex-direction: column;
+  }
+  .left-panel::-webkit-scrollbar { width: 3px; }
+  .left-panel::-webkit-scrollbar-track { background: transparent; }
+  .left-panel::-webkit-scrollbar-thumb { background: var(--dim); }
+
+  .panel-tag {
+    font-family: 'DM Mono'; font-size: 11px; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--cyan); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12px;
+    opacity: 0; animation: fadeUp 0.7s 0.1s forwards;
+  }
+  .panel-tag::before { content: ''; width: 40px; height: 1px; background: var(--cyan); }
+
+  .panel-title {
+    font-family: 'Bebas Neue'; font-size: clamp(44px, 5vw, 68px);
+    letter-spacing: 3px; line-height: 0.9; color: var(--text);
+    margin-bottom: 16px;
+    opacity: 0; animation: fadeUp 0.7s 0.2s forwards;
+  }
+  .panel-title span { color: transparent; -webkit-text-stroke: 1px rgba(59,130,246,0.5); }
+
+  .panel-desc {
+    font-size: 13px; color: var(--muted); line-height: 1.8; font-weight: 300;
+    margin-bottom: 28px;
+    opacity: 0; animation: fadeUp 0.7s 0.3s forwards;
+  }
+
+  /* Animated engineering deco below title */
+  .panel-deco {
+    margin-bottom: 24px;
+    opacity: 0; animation: fadeUp 0.7s 0.25s forwards;
+  }
+  .deco-line {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+  }
+  .deco-tick {
+    width: 16px; height: 1px; background: var(--cyan);
+    animation: deco-pulse 2.4s ease-in-out infinite;
+  }
+  .deco-tick:nth-child(2) { width: 28px; animation-delay: 0.3s; }
+  .deco-tick:nth-child(3) { width: 10px; animation-delay: 0.6s; }
+  @keyframes deco-pulse {
+    0%, 100% { opacity: 0.3; transform: scaleX(1); }
+    50% { opacity: 1; transform: scaleX(1.15); }
+  }
+  .deco-bracket {
+    font-family: 'DM Mono'; font-size: 9px; letter-spacing: 3px;
+    color: var(--dim); text-transform: uppercase;
+    animation: deco-text 3s ease-in-out infinite;
+  }
+  @keyframes deco-text {
+    0%, 100% { color: var(--dim); }
+    50% { color: var(--cyan); }
+  }
+  .deco-dots {
+    display: flex; gap: 5px; margin-top: 6px;
+  }
+  .deco-dot {
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--blue);
+    animation: deco-dot-anim 1.8s ease-in-out infinite;
+  }
+  .deco-dot:nth-child(2) { animation-delay: 0.3s; background: var(--cyan); }
+  .deco-dot:nth-child(3) { animation-delay: 0.6s; background: var(--blue-bright); }
+  .deco-dot:nth-child(4) { animation-delay: 0.9s; background: var(--dim); }
+  @keyframes deco-dot-anim {
+    0%, 100% { transform: scale(1); opacity: 0.4; }
+    50% { transform: scale(1.6); opacity: 1; }
+  }
+
+  /* Scanning line animation */
+  .deco-scanner {
+    position: relative; height: 2px; margin-top: 10px;
+    background: var(--border); overflow: hidden;
+  }
+  .deco-scanner::after {
+    content: '';
+    position: absolute; left: -40%; top: 0; width: 40%; height: 100%;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    animation: scan 2.5s linear infinite;
+  }
+  @keyframes scan { to { left: 140%; } }
+
+  /* CATEGORY NAV */
+  .cat-nav-label {
+    font-family: 'DM Mono'; font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--dim); margin-bottom: 12px;
+    opacity: 0; animation: fadeUp 0.7s 0.4s forwards;
+  }
+
+  .cat-nav-list {
+    display: flex; flex-direction: column; gap: 8px;
+    opacity: 0; animation: fadeUp 0.7s 0.5s forwards;
+    list-style: none;
+  }
+
+  .cat-nav-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 13px 18px;
+    background: rgba(37,99,235,0.08);
+    border: 1px solid rgba(37,99,235,0.25);
+    text-decoration: none;
+    cursor: none;
+    transition: background 0.25s, border-color 0.25s, transform 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .cat-nav-item::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--blue);
+    transform: scaleY(0); transform-origin: bottom;
+    transition: transform 0.25s;
+  }
+  .cat-nav-item:hover {
+    background: rgba(37,99,235,0.18);
+    border-color: var(--blue-bright);
+    transform: translateX(4px);
+  }
+  .cat-nav-item:hover::before { transform: scaleY(1); }
+
+  .cat-nav-left { display: flex; flex-direction: column; gap: 3px; }
+  .cat-nav-name {
+    font-family: 'Rajdhani'; font-size: 14px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: var(--text); transition: color 0.2s;
+  }
+  .cat-nav-item:hover .cat-nav-name { color: var(--blue-bright); }
+  .cat-nav-sub {
+    font-family: 'DM Mono'; font-size: 8px; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .cat-nav-right { display: flex; align-items: center; gap: 8px; }
+  .cat-nav-count {
+    font-family: 'DM Mono'; font-size: 9px;
+    background: rgba(37,99,235,0.2); border: 1px solid rgba(59,130,246,0.3);
+    color: var(--blue-bright); padding: 2px 7px;
+  }
+  .cat-nav-arrow { font-size: 16px; color: var(--blue-bright); transition: transform 0.2s; }
+  .cat-nav-item:hover .cat-nav-arrow { transform: translate(3px,-3px); }
+
+  /* RIGHT CONTENT — scrolls independently */
+  .right-content {
+    flex: 1;
+    min-width: 0;
+    padding: 80px 60px 100px;
+    position: relative;
+    z-index: 2;
+    background: var(--black);
+    overflow-y: auto;
+  }
+
+  /* Category overview cards */
+  .cat-overview-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+    opacity: 0; animation: fadeUp 0.7s 0.4s forwards;
+  }
+  .cat-overview-card {
+    background: var(--panel); border: 1px solid var(--border);
+    padding: 28px 28px 36px; text-decoration: none; cursor: none;
+    transition: background 0.25s, border-color 0.25s;
+    display: block; position: relative; overflow: hidden;
+  }
+  .cat-overview-card::after {
+    content: '↗';
+    position: absolute; top: 20px; right: 20px;
+    font-size: 18px; color: var(--blue-bright);
+    transition: transform 0.2s;
+  }
+  .cat-overview-card:hover { background: var(--steel); border-color: var(--blue); }
+  .cat-overview-card:hover::after { transform: translate(3px,-3px); }
+  .coc-tag {
+    font-family: 'DM Mono'; font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--blue-bright); margin-bottom: 10px;
+  }
+  .coc-title {
+    font-family: 'Rajdhani'; font-size: 17px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase; color: var(--text);
+    margin-bottom: 8px;
+  }
+  .coc-sub {
+    font-family: 'DM Mono'; font-size: 9px; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .featured-label {
+    font-family: 'DM Mono'; font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--dim); margin-bottom: 20px;
+    opacity: 0; animation: fadeUp 0.7s 0.3s forwards;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--black); }
+  ::-webkit-scrollbar-thumb { background: var(--blue); }
+
+  /* ── HAMBURGER ── */
+  .nav-toggle {
+    display: none; flex-direction: column; gap: 5px;
+    background: none; border: none; cursor: pointer; padding: 4px;
+    position: absolute; right: 24px;
+  }
+  .nav-toggle span { display: block; width: 22px; height: 1.5px; background: var(--muted); transition: background 0.2s; }
+  .nav-toggle:hover span { background: var(--cyan); }
+
+  /* ── MOBILE RESPONSIVE ── */
+  @media (max-width: 900px) {
+    body { cursor: auto; }
+    .cursor, .cursor-ring { display: none !important; }
+
+    nav { justify-content: center; padding: 0 24px; position: fixed; }
+    .nav-toggle { display: flex; }
+    .nav-links {
+      display: none; flex-direction: column; gap: 0;
+      position: absolute; top: 61px; left: 0; right: 0;
+      background: rgba(5,6,8,0.97); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border); padding: 16px 0; z-index: 300;
+    }
+    .nav-links.open { display: flex; }
+    .nav-links li { width: 100%; }
+    .nav-links a { display: block; padding: 14px 24px; font-size: 13px; letter-spacing: 2px; }
+
+    .page-wrap { flex-direction: column; }
+
+    /* Left panel goes static on mobile */
+    .left-panel {
+      position: static !important;
+      width: 100% !important;
+      height: auto !important;
+      overflow: visible !important;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      padding: 32px 20px 28px;
+      background: var(--black);
+    }
+    .left-panel * {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+    .cat-nav-label, .cat-nav-list { display: none !important; }
+
+    .right-content {
+      padding: 28px 20px 60px;
+      overflow-y: visible;
+    }
+    .right-content * {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+
+    .cat-overview-grid { grid-template-columns: 1fr; }
+    .panel-title { font-size: clamp(40px, 12vw, 60px); }
+  }
+
+  @media (max-width: 480px) {
+    .cat-overview-card { padding: 20px 20px 28px; }
+    .panel-title { font-size: clamp(36px, 10vw, 52px); }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html">About</a></li>
+    <li><a href="projects_file.html" class="active">Projects</a></li>
+    <li><a href="#">Research</a></li>
+    <li><a href="#">Case Studies</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrap">
+
+  <!-- LEFT PANEL — sticky, stays in place while right content scrolls -->
+  <div class="left-panel">
+    <div class="panel-tag">Portfolio</div>
+    <h1 class="panel-title">PROJECT<br><span>ARCHIVE</span></h1>
+
+    <!-- Looping animated decoration -->
+    <div class="panel-deco">
+      <div class="deco-line">
+        <div class="deco-tick"></div>
+        <div class="deco-tick"></div>
+        <div class="deco-tick"></div>
+        <span class="deco-bracket">eng.sys.v2.8</span>
+      </div>
+      <div class="deco-dots">
+        <div class="deco-dot"></div>
+        <div class="deco-dot"></div>
+        <div class="deco-dot"></div>
+        <div class="deco-dot"></div>
+      </div>
+      <div class="deco-scanner"></div>
+    </div>
+
+    <p class="panel-desc">A collection of engineering work spanning CAD, simulation, manufacturing, IoT and smart systems. Select a category to explore.</p>
+    <nav class="cat-nav-list">
+
+      <a class="cat-nav-item" href="3d_design_file.html">
+        <div class="cat-nav-left">
+          <div class="cat-nav-name">3D Design &amp; CAD</div>
+          <div class="cat-nav-sub">Modeling · Assembly · Drawing</div>
+        </div>
+        <div class="cat-nav-right">
+          <span class="cat-nav-count">2</span>
+          <span class="cat-nav-arrow">↗</span>
+        </div>
+      </a>
+
+      <a class="cat-nav-item" href="cat-cam.html">
+        <div class="cat-nav-left">
+          <div class="cat-nav-name">CAM &amp; Manufacturing</div>
+          <div class="cat-nav-sub">Toolpath · CNC · DFM</div>
+        </div>
+        <div class="cat-nav-right">
+          <span class="cat-nav-count">2</span>
+          <span class="cat-nav-arrow">↗</span>
+        </div>
+      </a>
+
+      <a class="cat-nav-item" href="cat-fea.html">
+        <div class="cat-nav-left">
+          <div class="cat-nav-name">Simulation &amp; FEA</div>
+          <div class="cat-nav-sub">Structural · Thermal · Modal</div>
+        </div>
+        <div class="cat-nav-right">
+          <span class="cat-nav-count">2</span>
+          <span class="cat-nav-arrow">↗</span>
+        </div>
+      </a>
+
+      <a class="cat-nav-item" href="cat-iot.html">
+        <div class="cat-nav-left">
+          <div class="cat-nav-name">IoT Integration</div>
+          <div class="cat-nav-sub">Sensors · Embedded · Monitoring</div>
+        </div>
+        <div class="cat-nav-right">
+          <span class="cat-nav-count">2</span>
+          <span class="cat-nav-arrow">↗</span>
+        </div>
+      </a>
+
+      <a class="cat-nav-item" href="cat-i40.html">
+        <div class="cat-nav-left">
+          <div class="cat-nav-name">Industry 4.0</div>
+          <div class="cat-nav-sub">Digital Twin · PLC · SCADA</div>
+        </div>
+        <div class="cat-nav-right">
+          <span class="cat-nav-count">2</span>
+          <span class="cat-nav-arrow">↗</span>
+        </div>
+      </a>
+
+      <a class="cat-nav-item" href="cat-dev.html">
+        <div class="cat-nav-left">
+          <div class="cat-nav-name">Product Development</div>
+          <div class="cat-nav-sub">Prototype · Lifecycle · DFM</div>
+        </div>
+        <div class="cat-nav-right">
+          <span class="cat-nav-count">2</span>
+          <span class="cat-nav-arrow">↗</span>
+        </div>
+      </a>
+
+      <a class="cat-nav-item" href="robotics.html">
+        <div class="cat-nav-left">
+          <div class="cat-nav-name">Robotics</div>
+          <div class="cat-nav-sub">Kinematics · Actuators · Autonomous</div>
+        </div>
+        <div class="cat-nav-right">
+          <span class="cat-nav-count">2</span>
+          <span class="cat-nav-arrow">↗</span>
+        </div>
+      </a>
+
+      <a class="cat-nav-item" href="cat-aiml.html">
+        <div class="cat-nav-left">
+          <div class="cat-nav-name">AI &amp; ML</div>
+          <div class="cat-nav-sub">Predictive · Automation · Models</div>
+        </div>
+        <div class="cat-nav-right">
+          <span class="cat-nav-count">2</span>
+          <span class="cat-nav-arrow">↗</span>
+        </div>
+      </a>
+
+    </nav>
+  </div>
+
+  <!-- RIGHT CONTENT — scrolls independently -->
+  <div class="right-content">
+
+    <div class="featured-label">— All Categories</div>
+    <div class="cat-overview-grid">
+
+      <a class="cat-overview-card" href="3d_design_file.html">
+        <div class="coc-tag">CAD — 2 Projects</div>
+        <div class="coc-title">3D Design &amp; CAD</div>
+        <div class="coc-sub">Precision modeling · Assembly design · Technical drawing</div>
+      </a>
+
+      <a class="cat-overview-card" href="cat-cam.html">
+        <div class="coc-tag">CAM — 2 Projects</div>
+        <div class="coc-title">CAM &amp; Manufacturing</div>
+        <div class="coc-sub">Toolpath generation · CNC setup · DFM</div>
+      </a>
+
+      <a class="cat-overview-card" href="cat-fea.html">
+        <div class="coc-tag">FEA — 2 Projects</div>
+        <div class="coc-title">Simulation &amp; FEA</div>
+        <div class="coc-sub">Structural · Thermal · Topology optimization</div>
+      </a>
+
+      <a class="cat-overview-card" href="cat-iot.html">
+        <div class="coc-tag">IOT — 2 Projects</div>
+        <div class="coc-title">IoT Integration</div>
+        <div class="coc-sub">Sensor systems · Embedded · Real-time monitoring</div>
+      </a>
+
+      <a class="cat-overview-card" href="cat-i40.html">
+        <div class="coc-tag">I4.0 — 2 Projects</div>
+        <div class="coc-title">Industry 4.0</div>
+        <div class="coc-sub">Digital twin · Smart factory · Automation</div>
+      </a>
+
+      <a class="cat-overview-card" href="cat-dev.html">
+        <div class="coc-tag">DEV — 2 Projects</div>
+        <div class="coc-title">Product Development</div>
+        <div class="coc-sub">Concept to prototype · DFM · Full lifecycle</div>
+      </a>
+
+      <a class="cat-overview-card" href="robotics.html">
+        <div class="coc-tag">ROB — 2 Projects</div>
+        <div class="coc-title">Robotics</div>
+        <div class="coc-sub">Kinematics · Mechanisms · Autonomous systems</div>
+      </a>
+
+      <a class="cat-overview-card" href="cat-aiml.html">
+        <div class="coc-tag">AI/ML — 2 Projects</div>
+        <div class="coc-title">AI &amp; ML</div>
+        <div class="coc-sub">Machine learning · Predictive models · Intelligent automation</div>
+      </a>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Hamburger
+  document.getElementById('navToggle').addEventListener('click', () => {
+    document.getElementById('navLinks').classList.toggle('open');
+  });
+
+  // Custom cursor — desktop only
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx=0,my=0,rx=0,ry=0;
+  const isDesktop = window.matchMedia('(pointer: fine)').matches;
+  if (isDesktop) {
+    document.addEventListener('mousemove', e => {
+      mx=e.clientX; my=e.clientY;
+      cursor.style.left=mx+'px'; cursor.style.top=my+'px';
+    });
+    (function animateRing(){
+      rx+=(mx-rx)*0.12; ry+=(my-ry)*0.12;
+      ring.style.left=rx+'px'; ring.style.top=ry+'px';
+      requestAnimationFrame(animateRing);
+    })();
+    document.querySelectorAll('a,button,.cat-nav-item,.cat-overview-card').forEach(el=>{
+      el.addEventListener('mouseenter',()=>{ring.style.width='48px';ring.style.height='48px';});
+      el.addEventListener('mouseleave',()=>{ring.style.width='32px';ring.style.height='32px';});
+    });
+  } else {
+    cursor.style.display='none';
+    ring.style.display='none';
+    document.body.style.cursor='auto';
+  }
+</script>
+</body>
+</html>
